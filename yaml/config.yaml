@@ -1,0 +1,7 @@
+save_dir: /home/takayama/workspace/20250121_filter_optimization/20250313_filter_opt_psr
+save_name: 20250313_filter_opt_psr
+N: 128
+T: 1000
+patch_num: 8
+height: [-90, 90]
+width: [-132, 148]

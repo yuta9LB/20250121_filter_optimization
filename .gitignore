@@ -1,0 +1,15 @@
+# pycache
+__pycache__/
+
+# output dirs
+2025*_filter_opt_psr/
+
+# imgs
+imgs/
+
+# sample
+sample/
+
+# temp
+temp/
+
