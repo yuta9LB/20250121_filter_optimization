@@ -3,7 +3,7 @@ import numpy as np
 class Particles:
     def __init__(self, w=0.729, c1=1.4, c2=1.4, N=100, patch_num=20, height=(-100, 100), width=(-100, 100), max_length=50):
         self.x = np.random.randint([height[0], width[0]], [height[1], width[1]], (N, patch_num, 2, 2))
-        self.v = np.zeros((N, 1, 2, 2))
+        self.v = np.random.rand(N, 1, 2, 2)
         self.w = w
         self.c1 = c1
         self.c2 = c2
@@ -48,6 +48,10 @@ class Particles:
 
         # 粒子の速度を更新
         self.v = self.w * self.v + self.c1 * np.random.rand() * (self.pbest - self.x) + self.c2 * np.random.rand() * (self.gbest - self.x)
+        for n in range(self.N):
+            if np.all(self.v[n] == 0):
+                print("v is zero")
+                self.v[n] = np.random.rand(1, 2, 2)
 
     def evaluate(self, fitness_func):
         updated = False
