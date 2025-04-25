@@ -29,7 +29,7 @@ def main(config):
     t = 0
     particles = Particles(N=N, patch_num=patch_num, height=height, width=width)
 
-    while (t < T) or (particles.cnt < 30):
+    while (t < T) and (particles.cnt < 30):
         print(f'Iteration: {t}')
 
         # ステップごとのディレクトリを作成し、移動
@@ -52,7 +52,7 @@ def main(config):
         while True:
             result = subprocess.run(["qstat"], capture_output=True, text=True)
             output = result.stdout.strip()
-            if not output or "Job ID" not in output:  # qstatが空 or ヘッダーのみなら終了
+            if not output:  # qstatが空 or ヘッダーのみなら終了
                 break
             time.sleep(10)
 
@@ -67,7 +67,6 @@ def main(config):
                 f.write(f'{t}\t{i}\t{t*N+i}\t{particles.fitness[i]}\n')
     
         # 更新
-        t += 1
         particles.update()
 
         # Global Best保存
@@ -79,6 +78,11 @@ def main(config):
         with open(f'{save_dir}/{save_name}.csv', 'a') as f:
             f.write(f'{t},{particles.gbest_fitness}\n')
             f.close()
+
+        t += 1
+
+    print(f'End of the program. The best fitness is {particles.gbest_fitness}.')
+    
 
 if __name__ == '__main__':
     config = yaml.safe_load(open('./yaml/config.yaml'))
