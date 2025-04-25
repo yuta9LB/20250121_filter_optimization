@@ -23,13 +23,14 @@ def make_jobscript(t, N, save_dir):
     jobscript = open('job.sh', 'w')
     jobscript.write(f'''#!/bin/bash
 #PBS -V
+#PBS -q workq
 #PBS -j oe
-#PBS -l nodes=1:gpus=1:exclusive_process
-#PBS -t 0-{N-1}
+#PBS -l select=1:ncpus=1:ngpus=1
+#PBS -J 0-{N-1}
 
 cd {save_dir}/{t}
 ''')
-    jobscript.write('''fdtd_gpu ${PBS_ARRAYID}.conf ${PBS_ARRAYID}\n''')
+    jobscript.write('''fdtd_gpu ${PBS_ARRAY_INDEX}.conf ${PBS_ARRAY_INDEX}\n''')
     jobscript.close()
 
 def make_circuit_image(particles, t ,N, DB_dir):
