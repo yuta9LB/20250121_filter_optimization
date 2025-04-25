@@ -19,7 +19,8 @@ def cal_s21(std_Spe, dut_Spe):
 
 def _fitness(s21, std_Spe, w_11=1, w_21=1):
 # def _fitness(s11, s21, std_Spe, w_11=1, w_21=1):
-    target_range = ((std_Spe.index >= 902e6) & (std_Spe.index <= 928e6)) | ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
+    target_range = ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
+    # target_range = ((std_Spe.index >= 902e6) & (std_Spe.index <= 928e6)) | ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
     s21_target_range = s21[target_range]
     s11_non_target_range = 1 - s21[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
     # s11_non_target_range = s11[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
@@ -31,7 +32,7 @@ def _fitness(s21, std_Spe, w_11=1, w_21=1):
 def cal_fitness(i):
     # 結果の読み込み
     # std_Feed = pd.read_csv('/home/takayama/workspace/20250121_filter_optimization/std/std.Feed', header=None, sep='\s+', index_col=0)
-    std_Spe = pd.read_csv('/home/takayama/workspace/20250121_filter_optimization/std/std.Spectrum', header=None, sep='\s+', index_col=0)
+    std_Spe = pd.read_csv('/home/takayama/20250121_filter_optimization/std/std.Spectrum', header=None, sep='\s+', index_col=0)
     # dut_Feed = pd.read_csv(f'{i}.Feed', header=None, sep='\s+', index_col=0)
     dut_Spe = pd.read_csv(f'{i}.Spectrum', header=None, sep='\s+', index_col=0)
 
