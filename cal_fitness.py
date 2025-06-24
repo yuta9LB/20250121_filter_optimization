@@ -17,17 +17,34 @@ def cal_s21(std_Spe, dut_Spe):
     s21  = dut_Spe[2] / std_Spe[2]
     return s21
 
-def _fitness(s21, std_Spe, w_11=1, w_21=1):
-# def _fitness(s11, s21, std_Spe, w_11=1, w_21=1):
-    target_range = ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
-    # target_range = ((std_Spe.index >= 902e6) & (std_Spe.index <= 928e6)) | ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
-    s21_target_range = s21[target_range]
-    s11_non_target_range = 1 - s21[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
-    # s11_non_target_range = s11[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
-    fitness_s11 = w_11 * np.mean(np.abs(20*np.log10(np.abs(s11_non_target_range))))
-    fitness_s21 = w_21 * np.mean(np.abs(20*np.log10(np.abs(s21_target_range))))
-    fitness = np.sqrt(fitness_s11**2 + fitness_s21**2)
+def _fitness(s21, std_Spe, alpha=0.5):
+    pass_band = ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
+    s21_pass_band = s21[pass_band]
+    stop_band = (std_Spe.index >= 2.6e9) & (std_Spe.index <= 5.6e9)
+    s21_stop_band = s21[stop_band]
+
+    assert alpha >= 0 and alpha <= 1, "alpha must be between 0 and 1"
+    fitness_s21_pass = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band))))
+    fitness_s21_stop = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band))))
+
+    # 絶対の制約
+    if fitness_s21_pass > 3:
+        fitness_s21_pass = 50
+
+    fitness = alpha * fitness_s21_pass + (1 - alpha) * fitness_s21_stop
     return fitness
+
+# def _fitness(s21, std_Spe, w_11=1, w_21=1):
+# # def _fitness(s11, s21, std_Spe, w_11=1, w_21=1):
+#     target_range = ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
+#     # target_range = ((std_Spe.index >= 902e6) & (std_Spe.index <= 928e6)) | ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
+#     s21_target_range = s21[target_range]
+#     s11_non_target_range = 1 - s21[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
+#     # s11_non_target_range = s11[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
+#     fitness_s11 = w_11 * np.mean(np.abs(20*np.log10(np.abs(s11_non_target_range))))
+#     fitness_s21 = w_21 * np.mean(np.abs(20*np.log10(np.abs(s21_target_range))))
+#     fitness = np.sqrt(fitness_s11**2 + fitness_s21**2)
+#     return fitness
 
 def cal_fitness(i):
     # 結果の読み込み
@@ -41,6 +58,6 @@ def cal_fitness(i):
     s21 = cal_s21(std_Spe, dut_Spe)
 
     # 適応度の計算
-    fitness = _fitness(s21, std_Spe, w_11=1, w_21=2)
+    fitness = _fitness(s21, std_Spe, alpha=0.5)
     # fitness = _fitness(s11, s21, std_Spe, w_11=1, w_21=2)
     return fitness
