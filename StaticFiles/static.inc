@@ -3,7 +3,7 @@ Display 0
 gnuplot 1
 Gerber 1 (-139, -109, 3) (158, 109, 3) 0
 
-TimeSteps 10000
+TimeSteps 30000
 TimeWeight 0.995
 
 CellSize X -165 201 0.000272315
