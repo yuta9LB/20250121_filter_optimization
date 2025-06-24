@@ -1,9 +1,9 @@
 import numpy as np
 
 class Particles:
-    def __init__(self, w=0.729, c1=1.4, c2=1.4, N=100, patch_num=20, height=(-100, 100), width=(-100, 100), max_length=100):
+    def __init__(self, w=0.729, c1=1.4, c2=1.4, N=100, patch_num=20, height=(-100, 100), width=(-100, 100), max_area=2000):
         self.x = np.random.randint([height[0], width[0]], [height[1], width[1]], (N, patch_num, 2, 2))
-        self.v = np.random.rand(N, 1, 2, 2)
+        self.v = np.random.rand(N, patch_num, 2, 2)
         self.w = w
         self.c1 = c1
         self.c2 = c2
@@ -11,7 +11,7 @@ class Particles:
         self.patch_num = patch_num
         self.height = height
         self.width = width
-        self.max_length = max_length
+        self.max_area = max_area
         self.pbest = np.zeros((N, patch_num, 2, 2)) # 自己ベスト
         self.pbest_fitness = np.inf * np.ones(N)
         self.gbest = np.zeros((patch_num, 2, 2)) # グローバルベスト
@@ -19,15 +19,15 @@ class Particles:
         self.fitness = np.zeros(N) # 適応度
         self.cnt = 0 # 停滞カウント
 
-        # 初期パッチの一片の長さを制限
+        # 初期パッチの面積を制限
         for i in range(self.N):
             for j in range(self.patch_num):
                 patch = self.x[i, j]
-                lengths = np.linalg.norm(patch[1] - patch[0])
-                if lengths > self.max_length:
-                    scale_factor = self.max_length / lengths
+                area = np.abs((patch[1, 0] - patch[0, 0]) * (patch[1, 1] - patch[0, 1]))
+                if area > self.max_area:
+                    scale_factor = (self.max_area / area) ** 0.25
                     patch_center = np.mean(patch, axis=0)
-                    self.x[i, j] = patch_center + (patch - patch_center) * scale_factor
+                    self.x[i, j] = (patch_center + (patch - patch_center) * scale_factor).astype(int)
 
     def update(self):
         # 粒子の位置と速度を更新
@@ -35,34 +35,22 @@ class Particles:
             r1 = np.random.rand()
             r2 = np.random.rand()
             self.v[i] = self.w * self.v[i] + self.c1 * r1 * (self.pbest[i] - self.x[i]) + self.c2 * r2 * (self.gbest - self.x[i])
-            if np.abs(self.v[i]).max() > self.v_max:
-                self.v[i] = np.clip(self.v[i], -self.v_max, self.v_max)
             if self.v[i].sum() == 0:
-                self.v[i] = np.random.uniform(-1.0, 1.0, (2, self.patch_num, 2, 2))
+                self.v[i] = np.random.uniform(-2.0, 2.0, (2, self.patch_num, 2, 2))
             self.x[i] = (self.x[i].astype(float) + self.v[i]).astype(int)
 
-            # パッチの一片の長さを制限
-            for k in range(2):
-                for j in range(self.patch_num):
-                    patch = self.x[i, k, j]
-                    lengths = np.linalg.norm(patch[1] - patch[0])
-                    if lengths > self.max_length:
-                        scale_factor = self.max_length / lengths
-                        patch_center = np.mean(patch, axis=0)
-                        self.x[i, k, j] = patch_center + (patch - patch_center) * scale_factor
+            # パッチの面積を制限
+            for j in range(self.patch_num):
+                patch = self.x[i, j]
+                area = np.abs((patch[1, 0] - patch[0, 0]) * (patch[1, 1] - patch[0, 1]))
+                if area > self.max_area:
+                    scale_factor = (self.max_area / area) ** 0.25
+                    patch_center = np.mean(patch, axis=0)
+                    self.x[i, j] = (patch_center + (patch - patch_center) * scale_factor).astype(int)
 
-                    # self.inp = ((x_min, y_min), (x_max, y_max))
-                    if k == 0:
-                        self.x[i, k, j, 0, 0] = np.clip(self.x[i, k, j, 0, 0], self.inp[0][0], self.inp[1][0])
-                        self.x[i, k, j, 1, 0] = np.clip(self.x[i, k, j, 1, 0], self.inp[0][0], self.inp[1][0])
-                        self.x[i, k, j, 0, 1] = np.clip(self.x[i, k, j, 0, 1], self.inp[0][1], self.inp[1][1])
-                        self.x[i, k, j, 1, 1] = np.clip(self.x[i, k, j, 1, 1], self.inp[0][1], self.inp[1][1])
-                    # self.out = ((x_min, y_min), (x_max, y_max))
-                    if k == 1:
-                        self.x[i, k, j, 0, 0] = np.clip(self.x[i, k, j, 0, 0], self.out[0][0], self.out[1][0])
-                        self.x[i, k, j, 1, 0] = np.clip(self.x[i, k, j, 1, 0], self.out[0][0], self.out[1][0])
-                        self.x[i, k, j, 0, 1] = np.clip(self.x[i, k, j, 0, 1], self.out[0][1], self.out[1][1])
-                        self.x[i, k, j, 1, 1] = np.clip(self.x[i, k, j, 1, 1], self.out[0][1], self.out[1][1])
+                # パッチの位置を制限
+                self.x[i, j, :, 0] = np.clip(self.x[i, j, :, 0], self.height[0], self.height[1])
+                self.x[i, j, :, 1] = np.clip(self.x[i, j, :, 1], self.width[0], self.width[1])
 
     def evaluate(self, fitness_func):
         updated = False
