@@ -22,13 +22,19 @@ def _fitness(s21, std_Spe, alpha=0.5):
     pass_band1 = ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
     s21_pass_band0 = s21[pass_band0]
     s21_pass_band1 = s21[pass_band1]
-    stop_band = (std_Spe.index >= 2.6e9) & (std_Spe.index <= 5.6e9)
-    s21_stop_band = s21[stop_band]
+    stop_band0 = (std_Spe.index >= 2.0e9) & (std_Spe.index <= 2.3e9)
+    stop_band1 = (std_Spe.index >= 2.6e9) & (std_Spe.index <= 5.6e9)
+    stop_band2 = (std_Spe.index >= 6.0e9) & (std_Spe.index <= 7.0e9)
+    s21_stop_band0 = s21[stop_band0]
+    s21_stop_band1 = s21[stop_band1]
+    s21_stop_band2 = s21[stop_band2]
 
     assert alpha >= 0 and alpha <= 1, "alpha must be between 0 and 1"
     fitness_s21_pass0 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band0))))
     fitness_s21_pass1 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band1))))
-    fitness_s21_stop = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band))))
+    fitness_s21_stop0 = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band0))))
+    fitness_s21_stop1 = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band1))))
+    fitness_s21_stop2 = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band2))))
 
     # 絶対の制約
     if fitness_s21_pass0 > 3:
@@ -36,7 +42,7 @@ def _fitness(s21, std_Spe, alpha=0.5):
     if fitness_s21_pass1 > 3:
         fitness_s21_pass1 = 50
 
-    fitness = alpha * (fitness_s21_pass0 + fitness_s21_pass1) + (1 - alpha) * fitness_s21_stop
+    fitness = alpha * (fitness_s21_pass0 + fitness_s21_pass1) + (1 - alpha) * (fitness_s21_stop0 + fitness_s21_stop1 + fitness_s21_stop2)
     return fitness
 
 # def _fitness(s21, std_Spe, w_11=1, w_21=1):
