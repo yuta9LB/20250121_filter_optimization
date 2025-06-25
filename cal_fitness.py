@@ -30,19 +30,19 @@ def _fitness(s21, std_Spe, alpha=0.5):
     s21_stop_band2 = s21[stop_band2]
 
     assert alpha >= 0 and alpha <= 1, "alpha must be between 0 and 1"
-    fitness_s21_pass0 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band0))))
-    fitness_s21_pass1 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band1))))
-    fitness_s21_stop0 = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band0))))
-    fitness_s21_stop1 = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band1))))
-    fitness_s21_stop2 = 20 - np.min(np.abs(20 * np.log10(np.abs(s21_stop_band2))))
+    fitness_pass0 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band0))))
+    fitness_pass1 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band1))))
+    fitness_stop0 = np.min(np.abs(20 * (1 - np.log10(np.abs(s21_stop_band0)))))
+    fitness_stop1 = np.min(np.abs(20 * (1 - np.log10(np.abs(s21_stop_band1)))))
+    fitness_stop2 = np.min(np.abs(20 * (1 - np.log10(np.abs(s21_stop_band2)))))
 
     # 絶対の制約
-    if fitness_s21_pass0 > 3:
-        fitness_s21_pass0 = 50
-    if fitness_s21_pass1 > 3:
-        fitness_s21_pass1 = 50
+    if fitness_pass0 > 3:
+        fitness_pass0 = 50
+    if fitness_pass1 > 3:
+        fitness_pass1 = 50
 
-    fitness = alpha * (fitness_s21_pass0 + fitness_s21_pass1) + (1 - alpha) * (fitness_s21_stop0 + fitness_s21_stop1 + fitness_s21_stop2)
+    fitness = alpha * (fitness_pass0 + fitness_pass1) + (1 - alpha) * (fitness_stop0 + fitness_stop1 + fitness_stop2)
     return fitness
 
 # def _fitness(s21, std_Spe, w_11=1, w_21=1):
