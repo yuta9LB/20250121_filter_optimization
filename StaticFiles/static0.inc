@@ -31,8 +31,8 @@ Define Copper (1.0, 0.999991, 6.17e+7) 10.0e+9
 Define RO4350B (3.48, 1.0, 0.0037) 1.0e+9
 
 # Observe
-Observe Vf (-30, -3, 0) (-30, 3, 3) +Z
-Observe Vf (100, -3, 0) (100, 3, 3) +Z
+Observe Vf (-100, 0, 0) (-100, 0, 3) +Z
+Observe Vf (100, 0, 0) (100, 0, 3) +Z
 
 # Marker
 Copper Plane (-135, -93, 3) (-133, -91, 3)
