@@ -1,7 +1,7 @@
 import numpy as np
 
 class Particles:
-    def __init__(self, w=0.729, c1=1.4, c2=1.4, N=100, patch_num=20, height=(-100, 100), width=(-100, 100), max_area=2000):
+    def __init__(self, w=0.729, c1=1.4, c2=1.4, N=100, patch_num=20, height=(-100, 100), width=(-100, 100), max_area=1000):
         self.x = np.random.randint([height[0], width[0]], [height[1], width[1]], (N, patch_num, 2, 2))
         self.v = np.random.rand(N, patch_num, 2, 2)
         self.w = w
@@ -36,7 +36,7 @@ class Particles:
             r2 = np.random.rand()
             self.v[i] = self.w * self.v[i] + self.c1 * r1 * (self.pbest[i] - self.x[i]) + self.c2 * r2 * (self.gbest - self.x[i])
             if self.v[i].sum() == 0:
-                self.v[i] = np.random.uniform(-2.0, 2.0, (2, self.patch_num, 2, 2))
+                self.v[i] = np.random.uniform(-2.0, 2.0, (self.patch_num, 2, 2))
             self.x[i] = (self.x[i].astype(float) + self.v[i]).astype(int)
 
             # パッチの面積を制限
