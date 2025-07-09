@@ -13,3 +13,6 @@ sample/
 # temp
 temp/
 
+# jupyter
+*.ipynb
+
