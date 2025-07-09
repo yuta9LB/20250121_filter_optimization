@@ -30,7 +30,7 @@ def main(config):
     particles = Particles(N=N, patch_num=patch_num, height=height, width=width)
 
     while (t < T) and (particles.cnt < 30):
-        print(f'Iteration: {t}')
+        print(f'Iteration: {t} Count: {particles.cnt} Global Best Fitness: {particles.gbest_fitness}')
 
         # ステップごとのディレクトリを作成し、移動
         os.makedirs(f'{save_dir}/{t}', exist_ok=True)
