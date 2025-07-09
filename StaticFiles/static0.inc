@@ -23,7 +23,8 @@ RO4350B  Cube  (-165, -109, 0) (201, 109, 3)
 Copper Plane (-165, -109, 0) (201, 109, 0)
 
 # 50 ohm Line
-Copper Plane (-165, -3, 3) (201, 3, 3)
+Copper Plane (-165, -3, 3) (-90, 3, 3)
+Copper Plane (90, -3, 3) (201, 3, 3)
 
 # Define Parameters
 Define Vacuum (1.0, 1.0, 0.0) 10.0e+9
