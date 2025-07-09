@@ -1,74 +1,91 @@
 import numpy as np
 import pandas as pd
 
-def cal_s11(std_Feed, dut_Feed):
+
+def cal_spara(std_Feed, dut_Feed):
     delta_t = dut_Feed[1][1]-dut_Feed[1][0] # 時間分解能
     freq_list = np.fft.fftfreq(len(dut_Feed[1]), delta_t) # 周波数リスト
+    target_freq_mask = freq_list >= 0 # とりあえず正だけ考える
+    freq_list = freq_list[target_freq_mask] # 正の周波数のみを抽出
 
     standard = np.fft.fft(std_Feed[5]) # 標準のFFT
     reflect = np.fft.fft(dut_Feed[5]-std_Feed[5]) # 反射のFFT
-    s11 = reflect/standard # S11を計算
-    target_freq_mask = freq_list >= 0 # とりあえず正だけ考える
-    s11 = s11[target_freq_mask]
-    
-    return s11
+    trancmission  = np.fft.fft(dut_Feed[6]) # 通過のFFT
 
-def cal_s21(std_Spe, dut_Spe):
-    s21  = dut_Spe[2] / std_Spe[2]
-    return s21
+    s11 = np.abs(reflect / standard) # S11を計算
+    s11 = s11[target_freq_mask] # 正の周波数のみを抽出
+    s21 = np.abs(trancmission / standard) # S21を計算
+    s21 = s21[target_freq_mask] # 正の周波数のみを抽出
 
-def _fitness(s21, std_Spe, alpha=0.5):
-    pass_band0 = ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9))
-    pass_band1 = ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
-    s21_pass_band0 = s21[pass_band0]
-    s21_pass_band1 = s21[pass_band1]
-    stop_band0 = (std_Spe.index >= 2.0e9) & (std_Spe.index <= 2.3e9)
-    stop_band1 = (std_Spe.index >= 2.6e9) & (std_Spe.index <= 5.6e9)
-    stop_band2 = (std_Spe.index >= 6.0e9) & (std_Spe.index <= 7.0e9)
-    s21_stop_band0 = s21[stop_band0]
-    s21_stop_band1 = s21[stop_band1]
-    s21_stop_band2 = s21[stop_band2]
+    return s11, s21, freq_list
 
-    assert alpha >= 0 and alpha <= 1, "alpha must be between 0 and 1"
-    fitness_pass0 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band0))))
-    fitness_pass1 = np.max(np.abs(20 * np.log10(np.abs(s21_pass_band1))))
-    fitness_stop0 = np.min(np.abs(20 * (1 - np.log10(np.abs(s21_stop_band0)))))
-    fitness_stop1 = np.min(np.abs(20 * (1 - np.log10(np.abs(s21_stop_band1)))))
-    fitness_stop2 = np.min(np.abs(20 * (1 - np.log10(np.abs(s21_stop_band2)))))
+def calculate_objective_function(
+    s11,
+    s21,
+    pass_band0,
+    pass_band1,
+    stop_band0,
+    stop_band1,
+    stop_band2,
+    w_p=1.0,
+    w_s=1.0
+):
+    """
+    マイクロ波マルチバンドパスフィルタの目的関数を計算します。
 
-    # 絶対の制約
-    if fitness_pass0 > 3:
-        fitness_pass0 = 50
-    if fitness_pass1 > 3:
-        fitness_pass1 = 50
+    Args:
+        s11 (pd.Series): S11パラメータ (dB)。インデックスは周波数。
+        s21 (pd.Series): S21パラメータ (dB)。インデックスは周波数。
+        pass_band0 (pd.Series): 1番目の通過帯域を示すbooleanマスク。
+        pass_band1 (pd.Series): 2番目の通過帯域を示すbooleanマスク。
+        stop_band0 (pd.Series): 1番目の阻止帯域を示すbooleanマスク。
+        stop_band1 (pd.Series): 2番目の阻止帯域を示すbooleanマスク。
+        stop_band2 (pd.Series): 3番目の阻止帯域を示すbooleanマスク。
+        r_target (float): リターンロスの目標値 [dB]。この値以上を目指します。
+        i_target (float): 挿入損失の目標値 [dB]。この値以下（0dBに近い）を目指します。
+        a_target (float): 減衰量の目標値 [dB]。この値以下を目指します。
+        w_p (float): 通過帯域の誤差に対する重み係数。
+        w_s (float): 阻止帯域の誤差に対する重み係数。
 
-    fitness = alpha * (fitness_pass0 + fitness_pass1) + (1 - alpha) * (fitness_stop0 + fitness_stop1 + fitness_stop2)
-    return fitness
+    Returns:
+        float: 計算された目的関数の値 (スコア)。
+    """
 
-# def _fitness(s21, std_Spe, w_11=1, w_21=1):
-# # def _fitness(s11, s21, std_Spe, w_11=1, w_21=1):
-#     target_range = ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
-#     # target_range = ((std_Spe.index >= 902e6) & (std_Spe.index <= 928e6)) | ((std_Spe.index >= 2.4e9) & (std_Spe.index <= 2.5e9)) | ((std_Spe.index >= 5.725e9) & (std_Spe.index <= 5.875e9))
-#     s21_target_range = s21[target_range]
-#     s11_non_target_range = 1 - s21[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
-#     # s11_non_target_range = s11[~target_range & ((std_Spe.index >= 5e8) & (std_Spe.index <= 12e9))]
-#     fitness_s11 = w_11 * np.mean(np.abs(20*np.log10(np.abs(s11_non_target_range))))
-#     fitness_s21 = w_21 * np.mean(np.abs(20*np.log10(np.abs(s21_target_range))))
-#     fitness = np.sqrt(fitness_s11**2 + fitness_s21**2)
-#     return fitness
+    pass_bands_all = pass_band0 | pass_band1
+    s11_pass = s11[pass_bands_all]
+    s21_pass = s21[pass_bands_all]
+
+    error_s11 = np.sum(np.abs(s11_pass)**2)
+    error_s21_pass = np.sum(1 - np.abs(s21_pass)**2)
+    e_pass = error_s11 + error_s21_pass
+
+    stop_bands_all = stop_band0 | stop_band1 | stop_band2
+    s21_stop = s21[stop_bands_all]
+
+    e_stop = np.sum(np.abs(s21_stop)**2)
+
+    objective_value = (w_p * e_pass) + (w_s * e_stop)
+
+    return objective_value
 
 def cal_fitness(i):
     # 結果の読み込み
-    # std_Feed = pd.read_csv('/home/takayama/workspace/20250121_filter_optimization/std/std.Feed', header=None, sep='\s+', index_col=0)
-    std_Spe = pd.read_csv('/home/takayama/20250121_filter_optimization/std/std.Spectrum', header=None, sep='\s+', index_col=0)
-    # dut_Feed = pd.read_csv(f'{i}.Feed', header=None, sep='\s+', index_col=0)
-    dut_Spe = pd.read_csv(f'{i}.Spectrum', header=None, sep='\s+', index_col=0)
+    std_Feed = pd.read_csv('/home/takayama/20250121_filter_optimization/std/std.Feed', header=None, sep='\s+', index_col=0)
+    dut_Feed = pd.read_csv(f'{i}.Feed', header=None, sep='\s+', index_col=0)
 
     # S11, S21の計算
-    # s11 = cal_s11(std_Feed, dut_Feed)
-    s21 = cal_s21(std_Spe, dut_Spe)
+    s11, s21, freq_list = cal_spara(std_Feed, dut_Feed)
 
     # 適応度の計算
-    fitness = _fitness(s21, std_Spe, alpha=0.5)
-    # fitness = _fitness(s11, s21, std_Spe, w_11=1, w_21=2)
+    fitness = calculate_objective_function(
+        s11=s11,
+        s21=s21,
+        pass_band0=((freq_list >= 2.4e9) & (freq_list <= 2.5e9)),
+        pass_band1=((freq_list >= 5.725e9) & (freq_list <= 5.875e9)),
+        stop_band0=(freq_list >= 2.0e9) & (freq_list <= 2.3e9),
+        stop_band1=(freq_list >= 2.6e9) & (freq_list <= 5.6e9),
+        stop_band2=(freq_list >= 6.0e9) & (freq_list <= 7.0e9),
+        w_p=15.0,
+        w_s=1.0
+    )
     return fitness
