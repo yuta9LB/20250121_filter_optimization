@@ -15,10 +15,18 @@ def main(config):
     patch_num = config['patch_num']
     height = tuple(config['height']) # (-109, 109)
     width = tuple(config['width']) # (-165, 201)
+    max_area = config['max_area']
+    range_len = tuple(config['range_len']) if config['range_len'] else None
+    stop_steps = config['stop_steps']
 
     DB_dir = f'{save_dir}/DB'
 
     os.makedirs(DB_dir, exist_ok=True)
+    
+    # configfileのコピーを保存
+    with open(f'{save_dir}/config.yaml', 'w') as f:
+        yaml.dump(config, f, default_flow_style=True)
+        f.close()
 
     # DBファイル作成
     with open(f'{DB_dir}/DB.csv', 'w') as f:
@@ -27,9 +35,9 @@ def main(config):
 
     # 初期設定定義
     t = 0
-    particles = Particles(N=N, patch_num=patch_num, height=height, width=width)
+    particles = Particles(N=N, patch_num=patch_num, height=height, width=width, max_area=max_area, range_len=range_len)
 
-    while (t < T) and (particles.cnt < 30):
+    while (t < T) and (particles.cnt < stop_steps):
         print(f'Iteration: {t} Count: {particles.cnt} Global Best Fitness: {particles.gbest_fitness}')
 
         # ステップごとのディレクトリを作成し、移動
@@ -58,6 +66,11 @@ def main(config):
 
         print(f'Queue insertion was completed.')
 
+        # job.sh.oから始まるファイルを削除
+        for file in os.listdir('.'):
+            if file.startswith('job.sh.o'):
+                os.remove(file)
+
         # 評価
         particles.evaluate(cal_fitness)
 
@@ -85,5 +98,5 @@ def main(config):
     
 
 if __name__ == '__main__':
-    config = yaml.safe_load(open('./yaml/config.yaml'))
+    config = yaml.safe_load(open('./yaml/config_2G.yaml'))
     main(config)
