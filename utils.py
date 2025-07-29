@@ -12,7 +12,8 @@ def make_conf(particles):
         template = TEMPLATE.copy()
 
         for [x0, y0], [x1, y1] in particles.x[i]:
-            template.append(f"Copper Plane ({y0}, {x0}, 3) ({y1}, {x1}, 3)\n")
+            template.append(f"Copper Plane ({y0}, {x0}, 4) ({y1}, {x1}, 4)\n")
+            # template.append(f"Copper Plane ({y0}, {x0}, 3) ({y1}, {x1}, 3)\n")
         
         # 設定ファイルに書き込み
         with open(f'{i}.conf', 'w') as f:
@@ -38,7 +39,8 @@ def make_circuit_image(particles, t ,N, DB_dir):
         template = TEMPLATE0.copy()
 
         for [x0, y0], [x1, y1] in particles.x[i]:
-            template.append(f"Copper Plane ({y0}, {x0}, 3) ({y1}, {x1}, 3)\n")
+            template.append(f"Copper Plane ({y0}, {x0}, 4) ({y1}, {x1}, 4)\n")
+            # template.append(f"Copper Plane ({y0}, {x0}, 3) ({y1}, {x1}, 3)\n")
         
         with open(f'tmp.conf', 'w') as f:
             f.writelines(template)

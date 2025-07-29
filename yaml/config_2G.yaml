@@ -1,0 +1,10 @@
+save_dir: /home/takayama/20250121_filter_optimization/20250724_dualbandpass_filter_opt_psr
+save_name: 20250724_dualbandpass_filter_opt_psr
+N: 140
+T: 1000
+patch_num: 20
+height: [-55, 56]
+width: [-59, 60]
+max_area: ~
+range_len: [2, 70]
+stop_steps: 50
